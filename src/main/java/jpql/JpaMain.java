@@ -1,9 +1,6 @@
 package jpql;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
+import javax.persistence.*;
 import java.util.List;
 
 public class JpaMain {
@@ -19,28 +16,46 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
 
-            Member member = new Member();
-            member.setUsername("member1");
-            member.setAge(10);
-            member.setType(MemberType.ADMIN);
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
 
-            member.setTeam(team);
+            Member member1 = new Member();
+            member1.setUsername("회원1");
+            member1.setTeam(teamA);
+            em.persist(member1);
 
-            em.persist(member);
+            Member member2 = new Member();
+            member2.setUsername("회원2");
+            member2.setTeam(teamA);
+            em.persist(member2);
+
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.setTeam(teamB);
+            em.persist(member3);
 
             em.flush();
             em.clear();
 
-            //join
-            String query = "select m from Member m " +
-                            "where m.type = :userType";
-            List<Member> result = em.createQuery(query, Member.class)
-                    .setParameter("userType", MemberType.ADMIN)
-                    .getResultList();
+            //fetch join
+            //member.getTeam을 LAZY설정을 해놔도 fetch join이 우선순위이다
+            String query = "select m From Member m join fetch m.team";
+
+            List<Member> result = em.createQuery(query, Member.class).getResultList();
+
+            for (Member member : result) {
+                System.out.println("member = " + member.getUsername() + ", " + member.getTeam().getName());
+                System.out.println("member.getClass() : " + member.getClass() + " " + "Team.getClass() : " + member.getTeam().getClass());
+                //회원1, 팀A : SQL
+                // 로그에 회원1, 팀A와 회원2, 팀1 사이에 쿼리문이 없음 => 1차 캐시에서 갖고왔음
+                //회원2, 팀A : 1차 캐시
+                //회원3, 팀B : SQL
+            }
 
             // commit transaction
             tx.commit();
