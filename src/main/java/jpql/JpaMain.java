@@ -42,20 +42,26 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            //fetch join
-            //member.getTeam을 LAZY설정을 해놔도 fetch join이 우선순위이다
-            String query = "select m From Member m join fetch m.team";
+            //collection fetch join
+            String query = "select t From Team t join fetch t.members";
 
-            List<Member> result = em.createQuery(query, Member.class).getResultList();
+            List<Team> result = em.createQuery(query, Team.class).getResultList();
 
-            for (Member member : result) {
-                System.out.println("member = " + member.getUsername() + ", " + member.getTeam().getName());
-                System.out.println("member.getClass() : " + member.getClass() + " " + "Team.getClass() : " + member.getTeam().getClass());
-                //회원1, 팀A : SQL
-                // 로그에 회원1, 팀A와 회원2, 팀1 사이에 쿼리문이 없음 => 1차 캐시에서 갖고왔음
-                //회원2, 팀A : 1차 캐시
-                //회원3, 팀B : SQL
-            }
+            for (Team team : result) {
+                System.out.println("team = " + team.getName() + "||" + team.getMembers().size());
+                for( Member member : team.getMembers() ) {
+                    System.out.println("-> member = " + member);
+                 }
+              }
+
+//            for (Member member : result) {
+//                System.out.println("team = " + member.getUsername() + "||" + member.getTeam().getName());
+//                System.out.println("member.getClass() : " + member.getClass() + " " + "Team.getClass() : " + member.getTeam().getClass());
+//                //회원1, 팀A : SQL
+//                // 로그에 회원1, 팀A와 회원2, 팀1 사이에 쿼리문이 없음 => 1차 캐시에서 갖고왔음
+//                //회원2, 팀A : 1차 캐시
+//                //회원3, 팀B : SQL
+//            }
 
             // commit transaction
             tx.commit();
