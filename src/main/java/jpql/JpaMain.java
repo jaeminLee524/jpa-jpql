@@ -41,22 +41,15 @@ public class JpaMain {
 
             em.flush();
             em.clear();
+            
+            //Using Named Query
+            List<Member> resultList = em.createNamedQuery("Member.findByUsername", Member.class)
+                    .setParameter("username", "회원1")
+                    .getResultList();
 
-            //entity 직접 사용 - 기본 키 값
-            String query = "select m from Member m where m = :member";
-
-            //query1과  query2의 값은 동일
-            String query2 = "select m fro m Member m where m.id = :memberId";
-
-            //entity 직접 사용 - 외래 키 값
-            //여기서 m.team이 가리키는 것은 외래키인 TEAM_ID를 가리킨다
-            String query3 = "select m from Member m where m.team = :team";
-
-            Member findMember = em.createQuery(query, Member.class)
-                    .setParameter("member", member1)
-                    .getSingleResult();
-
-            System.out.println("findMember = " + findMember); 
+            for (Member member : resultList) {
+                System.out.println("member = " + member);
+            }
 
             // commit transaction
             tx.commit();
